@@ -7,28 +7,15 @@ voyelles = [(0,"a"),(1,"ae"),(2,"ya"),(3,"yae"),(4,"eo"),(5,"e"),(6,"yeo"),(7,"y
 --Map contenant les dernieres consonnes
 deuxiemeConsonne = [(0,""),(1,"k"),(2,"k"),(3,"kt"),(4,"n"),(5,"nt"),(6,"nh"),(7,"t"),(8,"l"),(9,"lk"),(10,"lm"),(11,"lp"),(12,"lt"),(13,"lt"),(14,"lp"),(15,"lh"),(16,"m"),(17,"p"),(18,"pt"),(19,"t"),(20,"t"),(21,"ng"),(22,"t"),(23,"t"),(24,"k"),(25,"t"),(26,"p"),(27,"h")]
 --Map de lettre et de map, qui eux contiennent une autre lettre et la lettre a changer
-replaceList = [(1,[(11,"g"),(2,"ngn"),(5,"ngn"),(6,"ngm"),(15,"k-k")]),
-(4,[(0,"n-g"),(5,"ll")]),
-(7,[(11,"d"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),
-(8,[(11,"r"),(2,"ll"),(5,"ll")]),
-(16,[(5,"mn")]),
-(17,[(11,"b"),(2,"mn"),(5,"mn"),(6,"mm"),(17,"p-p")]),
-(19,[(11,"s"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),
-(21,[(11,"ng-"),(5,"ngn")]),
-(22,[(11,"J"),(2,"nn"),(5,"nn"),(6,"nm")]),
-(23,[(11,"ch"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),
-(25,[(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),
-(27,[(11,"h"),(0,"k"),(2,"nn"),(3,"t"),(5,"nn"),(6,"nm"),(7,"p"),(9,"hs"),(12,"ch"),(18,"t")])]
+replaceList = [(1,[(11,"g"),(2,"ngn"),(5,"ngn"),(6,"ngm"),(15,"k-k")]),(4,[(0,"n-g"),(5,"ll")]),(7,[(11,"d"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),(8,[(11,"r"),(2,"ll"),(5,"ll")]),(16,[(5,"mn")]),(17,[(11,"b"),(2,"mn"),(5,"mn"),(6,"mm"),(17,"p-p")]),(19,[(11,"s"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),(21,[(11,"ng-"),(5,"ngn")]),(22,[(11,"J"),(2,"nn"),(5,"nn"),(6,"nm")]),(23,[(11,"ch"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),(25,[(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),(27,[(11,"h"),(0,"k"),(2,"nn"),(3,"t"),(5,"nn"),(6,"nm"),(7,"p"),(9,"hs"),(12,"ch"),(18,"t")])]
 
-
-(11,vide)(0,"g")(2,"n")(d,3)(r,5)(m,6)(b,7)(s,9)(j,12)(ch,14)(k,15)(t,16)(p,17)(h,18)
 b :: [Char]
-b = "&#44039; &#53844; &#46944;    &#49240; &#53364;  ."
+b = "&#44039; &#53844; &#46944; &#49240; &#53364; &#46944; &#45128; &#50976; &#50872; &#46612;&#51012; &#49240; &#47792; &#54028; &#50688; &#44256; ."
 --b = "&#46980; &#46980; &#46980; . &#46980; &#46980; &#46980; . &#46980; &#46980; &#46980; ."
 
 main = do
         --a <-getLine;
-        putStrLn(work b)
+        print(work b)
 
 work = cleanInput>.>createJamosList>.>romanisation>.>correctSentence>.>printListOfListWithSeperator
 
@@ -103,7 +90,7 @@ romanisation :: [[(Int, Int, Int)]] -> [[((Int, String), (Int, String), (Int, St
 romanisation xs = (map.map) (\(x, y, z)  -> (myLookup x premieresConsonnes, myLookup y voyelles, myLookup z deuxiemeConsonne)) xs
 
 myLookup :: Eq a => a -> [(a, b)] -> (a,b)
-myLookup _ [] = error "A wrong unicode number was found..."
+myLookup key [] = error "A wrong unicode number was found..."
 myLookup key ((x, y):list) =
     if key == x
        then (key,y)
@@ -111,32 +98,45 @@ myLookup key ((x, y):list) =
 
 correctSentence :: [[((Int, String), (Int, String), (Int, String))]] -> [[(String, String, String)]]
 correctSentence [] = []
-correctSentence xs = (map.map) (\(list) -> (transformHangeul list)) xs
+correctSentence xs = map (\(list) -> (transformHangeul list)) xs
 
 transformHangeul :: [((Int, String), (Int, String), (Int, String))] -> [(String, String, String)]
-transformHangeul (word1:word2:list)
-    | length list == 0 = (replaceLetter word1 (first,second,third) replaceList) : (first,second,third) : []
-    | otherwise = 
+transformHangeul ((first1,second1,third1):(first2,second2,third2):list)
+    | length list == 0 =
         let
-            word2 = (first,second,third)
+            word1 = (first1,second1,third1)
+            word2 = (first2,second2,third2)
             newWord = (replaceLetter word1 word2 replaceList)
         in
-            if(newWord == word1)
-                then word1 : transformHangeul (word2:list)
-                else newWord : transformHangeul ((0,""),second,third):list)
+            if(newWord == (snd first1, snd second1, snd third1))
+                then (snd first1, snd second1, snd third1) : (snd first2,snd second2,snd third2) : []
+                else newWord : ("",snd second2,snd third2) : []
+    | otherwise = 
+        let
+            word1 = (first1,second1,third1)
+            word2 = (first2,second2,third2)
+            newWord = (replaceLetter word1 word2 replaceList)
+        in
+            if(newWord == (snd first1, snd second1,snd third1))
+                then (snd first1, snd second1, snd third1) : transformHangeul (word2:list)
+                else newWord : transformHangeul (((0,[]),second2,third2):list)
 
 replaceLetter :: ((Int, String), (Int, String), (Int, String)) -> ((Int, String), (Int, String), (Int, String)) -> [(Int,[(Int, String)])] -> (String, String, String)
+replaceLetter word1 word2 [] = tupleToString word1 
 replaceLetter (first1, second1, third1) (first2, second2, third2) ((number, letterList):list) =
     if fst third1 == number
         then (snd first1, snd second1, (findMatch third1 first2 letterList))
         else replaceLetter (first1, second1, third1) (first2, second2, third2) list
 
 findMatch :: (Int, String) -> (Int, String) -> [(Int, String)] -> String
-findMatch third _ [] = third
+findMatch third _ [] = snd third
 findMatch third first ((number, letter):list) = 
     if fst first == number
         then letter
-        else findMatch first list
+        else findMatch third first list
+
+tupleToString :: ((Int, String), (Int, String), (Int, String)) -> (String, String, String)
+tupleToString (first, second, third) = (snd first, snd second, snd third)
 
 printListOfListWithSeperator :: [[(String, String, String)]] -> String
 printListOfListWithSeperator [] = []
