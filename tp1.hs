@@ -1,4 +1,4 @@
-import Text.Read
+
 
 --Map contenant les premieres consonnes
 premieresConsonnes = [(0,"g"),(1,"kk"),(2,"n"),(3,"d"),(4,"tt"),(5,"r"),(6,"m"),(7,"b"),(8,"pp"),(9,"s"),(10,"ss"),(11,""),(12,"j"),(13,"jj"),(14,"ch"),(15,"k"),(16,"t"),(17,"p"),(18,"h")]
@@ -10,12 +10,12 @@ deuxiemeConsonne = [(0,""),(1,"k"),(2,"k"),(3,"kt"),(4,"n"),(5,"nt"),(6,"nh"),(7
 replaceList = [(1,[(11,"g"),(2,"ngn"),(5,"ngn"),(6,"ngm"),(15,"k-k")]),(4,[(0,"n-g"),(5,"ll")]),(7,[(11,"d"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),(8,[(11,"r"),(2,"ll"),(5,"ll")]),(16,[(5,"mn")]),(17,[(11,"b"),(2,"mn"),(5,"mn"),(6,"mm"),(17,"p-p")]),(19,[(11,"s"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),(21,[(11,"ng-"),(5,"ngn")]),(22,[(11,"J"),(2,"nn"),(5,"nn"),(6,"nm")]),(23,[(11,"ch"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),(25,[(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),(27,[(11,"h"),(0,"k"),(2,"nn"),(3,"t"),(5,"nn"),(6,"nm"),(7,"p"),(9,"hs"),(12,"ch"),(18,"t")])]
 
 b :: [Char]
-b = "&#44039; &#53844; &#46944; &#49240; &#53364; &#46944; &#45128; &#50976; &#50872; &#46612;&#51012; &#49240; &#47792; &#54028; &#50688; &#44256; ."
---b = "&#46980; &#46980; &#46980; . &#46980; &#46980; &#46980; . &#46980; &#46980; &#46980; ."
+--b = "&#44039; &#53844; &#46944; &#49240; &#53364; &#46944; &#45128; &#50976; &#50872; &#46612; &#51012; &#49240; &#47792; &#54028; &#50688; &#44256; ."
+b = "&#46980; &#46980; &#46980; . &#46980; &#46980; &#46980; . &#46980; &#46980; &#46980; ."
 
 main = do
         --a <-getLine;
-        print(work b)
+        putStrLn(work b)
 
 work = cleanInput>.>createJamosList>.>romanisation>.>correctSentence>.>printListOfListWithSeperator
 
@@ -50,9 +50,6 @@ seperateIntoSentences = divideChain ['.']
 seperateIntoWords :: [[Char]] -> [[[Char]]]
 seperateIntoWords xs = map (divideChain [' ']) xs
 
---convertStringListToIntList :: [[Char]] -> [Int]
---convertStringListToIntList xs = map (read::[Char]->Int) xs
-
 cleanString :: [[[Char]]] -> [[[Char]]]
 cleanString xs = (map.map) verifyWord xs
 
@@ -60,14 +57,6 @@ verifyWord :: [Char] -> [Char]
 verifyWord x
     | (take 2 x) == "&#" && (last x) == ';' = filter (not . (`elem` "#&;")) x
     | otherwise = error "Mauvais input..."
-
---turnDotsIntoNumbers :: [[Char]] -> [[Char]]
---turnDotsIntoNumbers [] = []
---turnDotsIntoNumbers xs = map (\x -> if x == "." then "9999" else x) xs
-
---createJamosList :: [Int] -> [(Int, Int, Int)]
---createJamosList [] = []
---createJamosList (x:xs) = createJamosFromUnicode x: createJamosList xs
 
 createJamosList :: [[Int]] -> [[(Int, Int, Int)]]
 createJamosList [] = []
@@ -111,7 +100,7 @@ transformHangeul ((first1,second1,third1):(first2,second2,third2):list)
             if(newWord == (snd first1, snd second1, snd third1))
                 then (snd first1, snd second1, snd third1) : (snd first2,snd second2,snd third2) : []
                 else newWord : ("",snd second2,snd third2) : []
-    | otherwise = 
+    | otherwise =
         let
             word1 = (first1,second1,third1)
             word2 = (first2,second2,third2)
@@ -122,7 +111,7 @@ transformHangeul ((first1,second1,third1):(first2,second2,third2):list)
                 else newWord : transformHangeul (((0,[]),second2,third2):list)
 
 replaceLetter :: ((Int, String), (Int, String), (Int, String)) -> ((Int, String), (Int, String), (Int, String)) -> [(Int,[(Int, String)])] -> (String, String, String)
-replaceLetter word1 word2 [] = tupleToString word1 
+replaceLetter word1 word2 [] = tupleToString word1
 replaceLetter (first1, second1, third1) (first2, second2, third2) ((number, letterList):list) =
     if fst third1 == number
         then (snd first1, snd second1, (findMatch third1 first2 letterList))
@@ -130,7 +119,7 @@ replaceLetter (first1, second1, third1) (first2, second2, third2) ((number, lett
 
 findMatch :: (Int, String) -> (Int, String) -> [(Int, String)] -> String
 findMatch third _ [] = snd third
-findMatch third first ((number, letter):list) = 
+findMatch third first ((number, letter):list) =
     if fst first == number
         then letter
         else findMatch third first list
