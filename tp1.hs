@@ -5,7 +5,9 @@ premieresConsonnes = [(0,"g"),(1,"kk"),(2,"n"),(3,"d"),(4,"tt"),(5,"r"),(6,"m"),
 --Map contenant les voyelles
 voyelles = [(0,"a"),(1,"ae"),(2,"ya"),(3,"yae"),(4,"eo"),(5,"e"),(6,"yeo"),(7,"ye"),(8,"o"),(9,"wa"),(10,"wae"),(11,"oe"),(12,"yo"),(13,"u"),(14,"wo"),(15,"we"),(16,"wi"),(17,"yu"),(18,"eu"),(19,"ui"),(20,"i")]
 --Map contenant les dernieres consonnes
-deuxiemeVoyelles = [(0,""),(1,"k"),(2,"k"),(3,"kt"),(4,"n"),(5,"nt"),(6,"nh"),(7,"t"),(8,"l"),(9,"lk"),(10,"lm"),(11,"lp"),(12,"lt"),(13,"lt"),(14,"lp"),(15,"lh"),(16,"m"),(17,"p"),(18,"pt"),(19,"t"),(20,"t"),(21,"ng"),(22,"t"),(23,"t"),(24,"k"),(25,"t"),(26,"p"),(27,"h")]
+deuxiemeConsonne = [(0,""),(1,"k"),(2,"k"),(3,"kt"),(4,"n"),(5,"nt"),(6,"nh"),(7,"t"),(8,"l"),(9,"lk"),(10,"lm"),(11,"lp"),(12,"lt"),(13,"lt"),(14,"lp"),(15,"lh"),(16,"m"),(17,"p"),(18,"pt"),(19,"t"),(20,"t"),(21,"ng"),(22,"t"),(23,"t"),(24,"k"),(25,"t"),(26,"p"),(27,"h")]
+--Map de lettre et de map, qui eux contiennent une autre lettre et la lettre a changer
+ajustements = [("k",[]),("n",[]),]
 
 b :: [Char]
 b = "&#44039; &#53844; &#46944;    &#49240; &#53364;  ."
@@ -15,7 +17,7 @@ main = do
         --a <-getLine;
         putStrLn(work b)
 
-work = cleanInput>.>createJamosList>.>romanisation>.>printListOfListWithSeperator
+work = cleanInput>.>createJamosList>.>romanisation>.>correctSentence>.>printListOfListWithSeperator
 
 --Fonction permettant d'inverser le sens de l'évaluation partielle. Provient des notes de cours de Bruno Malenfant.
 (>.>) :: (a->b) -> (b->c) -> (a->c)
@@ -78,18 +80,36 @@ divideChain dividers cs =
     cs' -> e : divideChain dividers cs''
         where (e,cs'') = break ((flip elem) dividers) cs'
 
-romanisation :: [[(Int, Int, Int)]] -> [[(String, String, String)]]
-romanisation xs = (map.map) (\(x, y, z)  -> (myLookup x premieresConsonnes, myLookup y voyelles, myLookup z deuxiemeVoyelles)) xs
+romanisation :: [[(Int, Int, Int)]] -> [[((Int, String), (Int, String), (Int, String))]]
+romanisation xs = (map.map) (\(x, y, z)  -> (myLookup x premieresConsonnes, myLookup y voyelles, myLookup z deuxiemeConsonne)) xs
 
-myLookup :: Eq a => a -> [(a, b)] -> b
+myLookup :: Eq a => a -> [(a, b)] -> (a,b)
 myLookup _ [] = error "A wrong unicode number was found..."
 myLookup key ((x, y):list) =
     if key == x
-       then y
+       then (key,y)
        else myLookup key list
 
-correctSentence :: [[(String, String, String)]] -> [[(String, String, String)]]
+correctSentence :: [[((Int, String), (Int, String), (Int, String))]] -> [[(String, String, String)]]
 correctSentence [] = []
+correctSentence xs = (map.map) (\(list) -> (transformHangeul list)) xs
+
+transformHangeul :: [((Int, String), (Int, String), (Int, String))] -> [(String, String, String)]
+transformHangeul (word1:word2:list)
+    | length list == 0 = (replaceLetter word1 word2 replaceList) : word2 : []
+    | otherwise = (replaceLetter word1 word2 replaceList) : transformHangeul (word2:list)
+
+replaceLetter :: ((Int, String), (Int, String), (Int, String)) -> ((Int, String), (Int, String), (Int, String)) -> [(Int,[(Int, String)])] -> (String, String, String)
+replaceLetter (first1, second1, third1) (first2, second2, third2) ((number, letterList):list) =
+    if fst third1 == number
+        then (snd first1, snd second1, (findMatch first2 letterList))
+        else replaceLetter (first1, second1, third1) (first2, second2, third2) list
+
+findMatch :: (Int, String) -> [(Int, String)] -> String
+findMatch first ((number, letter):list) = 
+    if fst first == number
+        then letter
+        else findMatch first list
 
 printListOfListWithSeperator :: [[(String, String, String)]] -> String
 printListOfListWithSeperator [] = []
