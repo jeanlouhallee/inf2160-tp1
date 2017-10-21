@@ -7,8 +7,21 @@ voyelles = [(0,"a"),(1,"ae"),(2,"ya"),(3,"yae"),(4,"eo"),(5,"e"),(6,"yeo"),(7,"y
 --Map contenant les dernieres consonnes
 deuxiemeConsonne = [(0,""),(1,"k"),(2,"k"),(3,"kt"),(4,"n"),(5,"nt"),(6,"nh"),(7,"t"),(8,"l"),(9,"lk"),(10,"lm"),(11,"lp"),(12,"lt"),(13,"lt"),(14,"lp"),(15,"lh"),(16,"m"),(17,"p"),(18,"pt"),(19,"t"),(20,"t"),(21,"ng"),(22,"t"),(23,"t"),(24,"k"),(25,"t"),(26,"p"),(27,"h")]
 --Map de lettre et de map, qui eux contiennent une autre lettre et la lettre a changer
-ajustements = [("k",[]),("n",[]),]
+replaceList = [(1,[(11,"g"),(2,"ngn"),(5,"ngn"),(6,"ngm"),(15,"k-k")]),
+(4,[(0,"n-g"),(5,"ll")]),
+(7,[(11,"d"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),
+(8,[(11,"r"),(2,"ll"),(5,"ll")]),
+(16,[(5,"mn")]),
+(17,[(11,"b"),(2,"mn"),(5,"mn"),(6,"mm"),(17,"p-p")]),
+(19,[(11,"s"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),
+(21,[(11,"ng-"),(5,"ngn")]),
+(22,[(11,"J"),(2,"nn"),(5,"nn"),(6,"nm")]),
+(23,[(11,"ch"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),
+(25,[(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),
+(27,[(11,"h"),(0,"k"),(2,"nn"),(3,"t"),(5,"nn"),(6,"nm"),(7,"p"),(9,"hs"),(12,"ch"),(18,"t")])]
 
+
+(11,vide)(0,"g")(2,"n")(d,3)(r,5)(m,6)(b,7)(s,9)(j,12)(ch,14)(k,15)(t,16)(p,17)(h,18)
 b :: [Char]
 b = "&#44039; &#53844; &#46944;    &#49240; &#53364;  ."
 --b = "&#46980; &#46980; &#46980; . &#46980; &#46980; &#46980; . &#46980; &#46980; &#46980; ."
@@ -34,8 +47,14 @@ validateAllNumbers xs = (map.map) validateNumber xs
 --Vérifie si le String est un nombre valide.
 validateNumber :: [Char] -> Int
 validateNumber x
-    | (readMaybe x :: Maybe Int) == Nothing = error "Unicode numbers must only contain digits..."
-    | otherwise = (read x :: Int)
+    | isNumber x = (read x :: Int)
+    | otherwise = error "Unicode numbers must only contain digits..."
+
+isNumber :: [Char] -> Bool
+isNumber [] = True
+isNumber (x:xs)
+    | elem x ['1','2','3','4','5','6','7','8','9','0'] = isNumber xs
+    | otherwise = False
 
 --Sépare le texte entre les caractères '.' (construit une liste de phrases)
 seperateIntoSentences :: [Char] -> [[Char]]
@@ -96,17 +115,25 @@ correctSentence xs = (map.map) (\(list) -> (transformHangeul list)) xs
 
 transformHangeul :: [((Int, String), (Int, String), (Int, String))] -> [(String, String, String)]
 transformHangeul (word1:word2:list)
-    | length list == 0 = (replaceLetter word1 word2 replaceList) : word2 : []
-    | otherwise = (replaceLetter word1 word2 replaceList) : transformHangeul (word2:list)
+    | length list == 0 = (replaceLetter word1 (first,second,third) replaceList) : (first,second,third) : []
+    | otherwise = 
+        let
+            word2 = (first,second,third)
+            newWord = (replaceLetter word1 word2 replaceList)
+        in
+            if(newWord == word1)
+                then word1 : transformHangeul (word2:list)
+                else newWord : transformHangeul ((0,""),second,third):list)
 
 replaceLetter :: ((Int, String), (Int, String), (Int, String)) -> ((Int, String), (Int, String), (Int, String)) -> [(Int,[(Int, String)])] -> (String, String, String)
 replaceLetter (first1, second1, third1) (first2, second2, third2) ((number, letterList):list) =
     if fst third1 == number
-        then (snd first1, snd second1, (findMatch first2 letterList))
+        then (snd first1, snd second1, (findMatch third1 first2 letterList))
         else replaceLetter (first1, second1, third1) (first2, second2, third2) list
 
-findMatch :: (Int, String) -> [(Int, String)] -> String
-findMatch first ((number, letter):list) = 
+findMatch :: (Int, String) -> (Int, String) -> [(Int, String)] -> String
+findMatch third _ [] = third
+findMatch third first ((number, letter):list) = 
     if fst first == number
         then letter
         else findMatch first list
