@@ -1,21 +1,17 @@
 
 
 --Map contenant les premieres consonnes
-premieresConsonnes = [(0,"g"),(1,"kk"),(2,"n"),(3,"d"),(4,"tt"),(5,"r"),(6,"m"),(7,"b"),(8,"pp"),(9,"s"),(10,"ss"),(11,""),(12,"j"),(13,"jj"),(14,"ch"),(15,"k"),(16,"t"),(17,"p"),(18,"h")]
+firstConsonant = [(0,"g"),(1,"kk"),(2,"n"),(3,"d"),(4,"tt"),(5,"r"),(6,"m"),(7,"b"),(8,"pp"),(9,"s"),(10,"ss"),(11,""),(12,"j"),(13,"jj"),(14,"ch"),(15,"k"),(16,"t"),(17,"p"),(18,"h")]
 --Map contenant les voyelles
-voyelles = [(0,"a"),(1,"ae"),(2,"ya"),(3,"yae"),(4,"eo"),(5,"e"),(6,"yeo"),(7,"ye"),(8,"o"),(9,"wa"),(10,"wae"),(11,"oe"),(12,"yo"),(13,"u"),(14,"wo"),(15,"we"),(16,"wi"),(17,"yu"),(18,"eu"),(19,"ui"),(20,"i")]
+voyels = [(0,"a"),(1,"ae"),(2,"ya"),(3,"yae"),(4,"eo"),(5,"e"),(6,"yeo"),(7,"ye"),(8,"o"),(9,"wa"),(10,"wae"),(11,"oe"),(12,"yo"),(13,"u"),(14,"wo"),(15,"we"),(16,"wi"),(17,"yu"),(18,"eu"),(19,"ui"),(20,"i")]
 --Map contenant les dernieres consonnes
-deuxiemeConsonne = [(0,""),(1,"k"),(2,"k"),(3,"kt"),(4,"n"),(5,"nt"),(6,"nh"),(7,"t"),(8,"l"),(9,"lk"),(10,"lm"),(11,"lp"),(12,"lt"),(13,"lt"),(14,"lp"),(15,"lh"),(16,"m"),(17,"p"),(18,"pt"),(19,"t"),(20,"t"),(21,"ng"),(22,"t"),(23,"t"),(24,"k"),(25,"t"),(26,"p"),(27,"h")]
+secondConsonant = [(0,""),(1,"k"),(2,"k"),(3,"kt"),(4,"n"),(5,"nt"),(6,"nh"),(7,"t"),(8,"l"),(9,"lk"),(10,"lm"),(11,"lp"),(12,"lt"),(13,"lt"),(14,"lp"),(15,"lh"),(16,"m"),(17,"p"),(18,"pt"),(19,"t"),(20,"t"),(21,"ng"),(22,"t"),(23,"t"),(24,"k"),(25,"t"),(26,"p"),(27,"h")]
 --Map de lettre et de map, qui eux contiennent une autre lettre et la lettre a changer
 replaceList = [(1,[(11,"g"),(2,"ngn"),(5,"ngn"),(6,"ngm"),(15,"k-k")]),(4,[(0,"n-g"),(5,"ll")]),(7,[(11,"d"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),(8,[(11,"r"),(2,"ll"),(5,"ll")]),(16,[(5,"mn")]),(17,[(11,"b"),(2,"mn"),(5,"mn"),(6,"mm"),(17,"p-p")]),(19,[(11,"s"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),(21,[(11,"ng-"),(5,"ngn")]),(22,[(11,"J"),(2,"nn"),(5,"nn"),(6,"nm")]),(23,[(11,"ch"),(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),(25,[(2,"nn"),(5,"nn"),(6,"nm"),(16,"t-t")]),(27,[(11,"h"),(0,"k"),(2,"nn"),(3,"t"),(5,"nn"),(6,"nm"),(7,"p"),(9,"hs"),(12,"ch"),(18,"t")])]
 
-b :: [Char]
---b = "&#44039; &#53844; &#46944; &#49240; &#53364; &#46944; &#45128; &#50976; &#50872; &#46612; &#51012; &#49240; &#47792; &#54028; &#50688; &#44256; ."
-b = "&#46980; &#46980; &#46980; . &#46980; &#46980; &#46980; . &#46980; &#46980; &#46980; ."
-
 main = do
-        --a <-getLine;
-        putStrLn(work b)
+        a <-getLine;
+        putStrLn(work a)
 
 work = cleanInput>.>createJamosList>.>romanisation>.>correctSentence>.>printListOfListWithSeperator
 
@@ -56,7 +52,7 @@ cleanString xs = (map.map) verifyWord xs
 verifyWord :: [Char] -> [Char]
 verifyWord x
     | (take 2 x) == "&#" && (last x) == ';' = filter (not . (`elem` "#&;")) x
-    | otherwise = error "Mauvais input..."
+    | otherwise = error "Wrong input..."
 
 createJamosList :: [[Int]] -> [[(Int, Int, Int)]]
 createJamosList [] = []
@@ -76,7 +72,7 @@ divideChain dividers cs =
         where (e,cs'') = break ((flip elem) dividers) cs'
 
 romanisation :: [[(Int, Int, Int)]] -> [[((Int, String), (Int, String), (Int, String))]]
-romanisation xs = (map.map) (\(x, y, z)  -> (myLookup x premieresConsonnes, myLookup y voyelles, myLookup z deuxiemeConsonne)) xs
+romanisation xs = (map.map) (\(x, y, z)  -> (myLookup x firstConsonant, myLookup y voyels, myLookup z secondConsonant)) xs
 
 myLookup :: Eq a => a -> [(a, b)] -> (a,b)
 myLookup key [] = error "A wrong unicode number was found..."
