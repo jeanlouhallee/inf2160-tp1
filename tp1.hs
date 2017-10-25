@@ -1,4 +1,12 @@
-
+----------------------------------------------------------------------
+-- INF2160 - Paradigmes de programmation
+-- TP1
+-- Fait par Jean-Lou Hallée (HALJ05129309) et Alexis Millette (MILA)
+--
+-- Commentaires généraux:
+-- Pour le input, nous avons déduit qu'il doit au moins avoir un espace entre chaque "mot".
+--
+----------------------------------------------------------------------
 
 --Map contenant les premieres consonnes
 firstConsonant = [(0,"g"),(1,"kk"),(2,"n"),(3,"d"),(4,"tt"),(5,"r"),(6,"m"),(7,"b"),(8,"pp"),(9,"s"),(10,"ss"),(11,""),(12,"j"),(13,"jj"),(14,"ch"),(15,"k"),(16,"t"),(17,"p"),(18,"h")]
@@ -13,57 +21,99 @@ main = do
         a <-getLine;
         putStrLn(work a)
 
+-- Argument 1: Prend un String en paramètre (le String à traduire)
+-- Enchaîne les appels de fonction permettant de traduire
 work = cleanInput>.>createJamosList>.>romanisation>.>correctSentence>.>printListOfListWithSeperator
 
 --Fonction permettant d'inverser le sens de l'évaluation partielle. Provient des notes de cours de Bruno Malenfant.
 (>.>) :: (a->b) -> (b->c) -> (a->c)
 g >.> f = f.g
 
---Grosse fonction qui permet d'effectuer toutes les opérations nécéssaires pour la validation de l'entrée de l'utilisateur.
+-- Argument 1: Prend un String (tableau de caractères) en paramètre
+--
+-- Fonction qui permet d'effectuer toutes les opérations nécéssaires pour la validation de l'entrée de l'utilisateur
+-- et retourne une liste de nombres entier
 cleanInput :: [Char] -> [[Int]]
 cleanInput = seperateIntoSentences>.>seperateIntoWords>.>cleanString>.>validateAllNumbers
 
---Permet de valider tous les Strings afin de s'assurer s'ils sont des nombres.
+-- Argument 1: Prend une liste de String en paramètre
+--
+-- Permet de valider si tous les Strings contenu dans une liste sont des nombres
+-- et retourne une liste de nombres entier
 validateAllNumbers :: [[[Char]]] -> [[Int]]
 validateAllNumbers xs = (map.map) validateNumber xs
 
---Vérifie si le String est un nombre valide.
+-- Argument 1: Prend un String en paramètre
+--
+-- Permet de valider si un String nombres
+-- et retourne le nombre correspondant s'il est valide
 validateNumber :: [Char] -> Int
 validateNumber x
     | isNumber x = (read x :: Int)
     | otherwise = error "Unicode numbers must only contain digits..."
 
+-- Argument 1: Prend un String en paramètre
+--
+-- Fonction permettant de détecter si tous les caractères dans un string sont des chiffres
+-- et retourne vrai si la condition est respectée
 isNumber :: [Char] -> Bool
 isNumber [] = True
 isNumber (x:xs)
     | elem x ['1','2','3','4','5','6','7','8','9','0'] = isNumber xs
     | otherwise = False
 
---Sépare le texte entre les caractères '.' (construit une liste de phrases)
+--Argument 1: Prend un string en paramètre
+--
+-- Sépare le texte entre les caractères '.' (construit une liste de phrases)
+-- et retourne une liste de string correspondant au texte séparé
 seperateIntoSentences :: [Char] -> [[Char]]
 seperateIntoSentences = divideChain ['.']
 
+-- Argument 1: Prend une liste de String en paramètre
+--
+-- Permet de séparer des string dans listes dans une liste
+-- et retourne une liste avec des listes de string
 seperateIntoWords :: [[Char]] -> [[[Char]]]
 seperateIntoWords xs = map (divideChain [' ']) xs
 
+-- Argument 1: Prend une liste de listes de string
+-- Permet d'extraire seulement les nombres d'une liste de listes
+-- et retourne cette liste de listes nettoyée
 cleanString :: [[[Char]]] -> [[[Char]]]
 cleanString xs = (map.map) verifyWord xs
 
+-- Argument 1: Prend un string en paramètre
+--
+-- Permet de valider le format spécifique "&#xxxxx;"
+-- et retourne le string sans les caractères "&#;"
 verifyWord :: [Char] -> [Char]
 verifyWord x
     | (take 2 x) == "&#" && (last x) == ';' = filter (not . (`elem` "#&;")) x
     | otherwise = error "Wrong input..."
 
+-- Argument 1: Prend une liste de nombre entier en paramètre
+--
+-- Permet de créer la liste de jamos à partir de la liste de nombres unicodes
+-- et retourne une liste de listes de tuples (liste de listes de jamos)
 createJamosList :: [[Int]] -> [[(Int, Int, Int)]]
 createJamosList [] = []
 createJamosList xs = (map.map) createJamosFromUnicode xs
 
+-- Argument 1: Prend un nombre entier en paramètre
+--
+-- Permet de transformer un nombre unicode en jamos
+-- et retourne un tuple de nombres entiers (jamos)
 createJamosFromUnicode :: Int -> (Int, Int, Int)
 createJamosFromUnicode x = (ci, v, cf)
     where   ci = (x - 44032) `div` 588
             v = ((x - 44032) `mod` 588) `div` 28
             cf = ((x - 44032) `mod` 588) `mod` 28
 
+-- Argument 1: Un string (liste de caractères étant les séparateurs)
+-- Argument 2: Un string que l'on doit diviser
+--
+-- Permet de séparer un string en une liste de String par un séparateur
+-- et retourne retourne une liste de string correspondant au texte séparé
 divideChain :: [Char] -> [Char] -> [[Char]]
 divideChain dividers cs =
     case dropWhile ((flip elem) dividers) cs of
@@ -71,9 +121,16 @@ divideChain dividers cs =
     cs' -> e : divideChain dividers cs''
         where (e,cs'') = break ((flip elem) dividers) cs'
 
+-- Argument 1: Une liste de listes de tuples contenant des nombres entiers
+-- Permet de transformer les jamos en lettres (romanisation)
 romanisation :: [[(Int, Int, Int)]] -> [[((Int, String), (Int, String), (Int, String))]]
 romanisation xs = (map.map) (\(x, y, z)  -> (myLookup x firstConsonant, myLookup y voyels, myLookup z secondConsonant)) xs
 
+-- Argument 1: Une value clé que l'on doit chercher
+-- Argument 2: Une liste de tuples
+--
+-- Permet d'aller chercher un élément dans une liste (key: value), et qu'une erreur soit retournée si l'élément n'est pas trouvé
+-- si l'element est trouvé, elle retourne le tuple correspondant à la key
 myLookup :: Eq a => a -> [(a, b)] -> (a,b)
 myLookup key [] = error "A wrong unicode number was found..."
 myLookup key ((x, y):list) =
@@ -127,8 +184,9 @@ replaceLetter (first1, second1, third1) (first2, second2, third2) ((number, lett
         then (snd first1, snd second1, (findMatch third1 first2 letterList))
         else replaceLetter (first1, second1, third1) (first2, second2, third2) list
 
--- Cette fonction prend en 1er argument un tuple qui représente la derniere lettre d'un mot, en 2e argument un tuple qui
--- représente la 1e lettre du mot suivant et en 3e argument une liste de tuple (Int, String).
+-- Argument 1: Un tuple qui représente la derniere lettre d'un mot
+-- Argument 2: Un tuple qui représente la 1e lettre du mot suivant
+-- Argument 3: Une liste de tuple (Int, String)
 --
 -- La fonction passe à travers la liste de tuple et vérifie si un tuple correspond au tuple du 2e arguement, s'il le trouve,
 -- il retourne le String du tuple qui correspond dans la liste.
@@ -140,21 +198,28 @@ findMatch third first ((number, letter):list) =
         then letter
         else findMatch third first list
 
--- Cette fonction prend un tuple de (Int, String) et retourne un tuple de String
+-- Argument 1: prend un tuple de (Int, String) en argument
+-- Permet de retourner un tuple contenant seulement les strings de celui passé an argument
 tupleToTupleString :: ((Int, String), (Int, String), (Int, String)) -> (String, String, String)
 tupleToTupleString (first, second, third) = (snd first, snd second, snd third)
 
--- Cette fonction prend une liste de liste de tuple de string en argument et retourne les strings concaténé avec les points
+-- Argument 1: Prend une liste de liste de tuple de string en argument
+--
+-- Permet de retourner les strings concaténé avec les points
 -- séparant les phrases.
 printListOfListWithSeperator :: [[(String, String, String)]] -> String
 printListOfListWithSeperator [] = []
 printListOfListWithSeperator (x:xs) = printListOfTuple x ++ "." ++ printListOfListWithSeperator xs
 
--- Cette fonction prend une liste de tuple de string en argument et retourne les strings concaténé
+-- Argument 1: Prend une liste de tuple de string en argument
+--
+-- Permet de retourner les strings concaténés
 printListOfTuple :: [(String, String, String)] -> String
 printListOfTuple [] = []
 printListOfTuple (x:xs) = printTuple x ++ printListOfTuple xs
 
--- Cette fonction prend un tuple de string en argument et retourne les strings concaténé
+-- Argument 1: Prend un tuple de string en argument
+--
+-- Permet de retourner les strings concaténé
 printTuple :: (String, String, String) -> String
 printTuple (x, y, z) = x ++ y ++ z
