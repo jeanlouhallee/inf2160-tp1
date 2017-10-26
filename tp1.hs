@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------
 -- INF2160 - Paradigmes de programmation
 -- TP1
--- Fait par Jean-Lou Hallée (HALJ05129309) et Alexis Millette (MILA)
+-- Fait par Jean-Lou Hallée (HALJ05129309) et Alexis Millette (MILA24099409)
 --
 -- Commentaires généraux:
 -- Pour le input, nous avons déduit qu'il doit au moins avoir un espace entre chaque "mot".
